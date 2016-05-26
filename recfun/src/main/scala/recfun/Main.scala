@@ -20,10 +20,33 @@ object Main {
     } else {
       return pascal(c - 1, r - 1) + pascal(c, r - 1)
     }
+
   /**
    * Exercise 2
    */
-  def balance(chars: List[Char]): Boolean = ???
+  def balance(chars: List[Char]): Boolean = {
+    
+    /* Method to keep tally and check open parens */
+    def open(chars2: List[Char], count: Int): Int = 
+      // If count < 0, parens out of order, eg ')(' return false
+      if (chars2.isEmpty || count < 0) {
+        return count
+      }
+      else if (chars2.head == '(') {
+        return open(chars2.tail, count +1)
+      }
+      else if (chars2.head == ')') {
+        return open(chars2.tail, count - 1)
+      }
+      else {
+        return open(chars2.tail, count)
+      }
+
+    /* check open method has even zero tally */
+    return open(chars, 0) == 0
+  }
+  
+  balance("(a)".toList)
 
   /**
    * Exercise 3

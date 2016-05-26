@@ -45,11 +45,32 @@ object Main {
     /* check open method has even zero tally */
     return open(chars, 0) == 0
   }
-  
-  balance("(a)".toList)
 
   /**
    * Exercise 3
+   * Idea is we iterate through the coin list and branch off into two directions.
+   * The first direction is trying to deplete change with the first coin. This 
+   * branch also further spins off the other branch, which gives up on the current 
+   * coin and starts with the next coin
    */
-  def countChange(money: Int, coins: List[Int]): Int = ???
+  def countChange(money: Int, coins: List[Int]): Int = {
+    
+    def numDivisible(change: Int, denominations: List[Int]): Int = 
+      if (change < 0) {
+        return 0
+      }
+      else if (change == 0) {
+        return 1
+      }
+      else if (change > 0 && denominations.isEmpty) {
+        return 0
+      }
+      else {
+        val nextCoin = denominations.head
+        val nextDenoms = denominations.tail
+        return numDivisible(change - nextCoin, denominations) + numDivisible(change, nextDenoms)
+      }
+    
+    return numDivisible(money, coins)
+  }
 }

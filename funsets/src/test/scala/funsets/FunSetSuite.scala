@@ -49,11 +49,11 @@ class FunSetSuite extends FunSuite {
 
 
   import FunSets._
-
-  test("contains is implemented") {
-    assert(contains(x => true, 100))
-  }
-
+/*
+*  test("contains is implemented") {
+*    assert(contains(x => true, 100))
+*  }
+*/
   /**
    * When writing tests, one would often like to re-use certain values for multiple
    * tests. For instance, we would like to create an Int-set and have multiple test
@@ -109,6 +109,40 @@ class FunSetSuite extends FunSuite {
       assert(!contains(s, 3), "Union 3")
     }
   }
+  
+  test("intersection contains only elements in both sets") {
+    new TestSets {
+      val s = intersect(s1, s2)
+      val t = intersect(s3, s3)
+      assert(!contains(s, 1), "Null Intersect 1")
+      assert(!contains(s, 2), "Null Intersect 2")
+      assert(!contains(s, 3), "Null Intersect 3")
+      assert(contains(t, 3),  "Singleton Intersect")
+    }
+  }
 
+  test("difference contains only elements of first list not in second list") {
+    new TestSets {
+      val s = diff(s1, s2)
+      val t = diff(s3, s3)
+      assert(contains(s, 1),  "True Diff 1")
+      assert(!contains(s, 2), "False Diff 1")
+      assert(!contains(s, 3), "False Diff 2")
+      assert(!contains(t, 3), "Null Diff 1")
+      assert(!contains(t, 1), "Null Diff 2")
+    }
+  }
 
+  test("filter only selects elements that are in a set and return true when predicate applied") {
+    new TestSets {
+      val s = filter(s1, (x => x > 0))
+      val t = filter(s3, (x => x < 2))
+      assert(contains(s, 1),  "True filter 1")
+      assert(!contains(s, 2), "False Filter 1")
+      assert(!contains(s, 3), "False Filter 2")
+      assert(!contains(t, 3), "Null Filter 1")
+      assert(!contains(t, 1), "Null Filter 1")
+    }
+  }
+  
 }

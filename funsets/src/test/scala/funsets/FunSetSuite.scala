@@ -77,6 +77,9 @@ class FunSetSuite extends FunSuite {
     val s1 = singletonSet(1)
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
+    val s4: Set = (x => x < 3)
+    val s5: Set = (x => x > 0)
+    val s6: Set = (x => x > 4)
   }
 
   /**
@@ -104,9 +107,14 @@ class FunSetSuite extends FunSuite {
   test("union contains all elements of each set") {
     new TestSets {
       val s = union(s1, s2)
-      assert(contains(s, 1), "Union 1")
-      assert(contains(s, 2), "Union 2")
+      val t = union(s4, s5) // all numbers
+      val u = union(s5, s6) // x > 0
+      assert(contains(s, 1),  "Union 1")
+      assert(contains(s, 2),  "Union 2")
       assert(!contains(s, 3), "Union 3")
+      assert(contains(t, 100000), "Range Union 1")
+      assert(contains(u, 1), "Range Union 2")
+      assert(!contains(u, -1), "Range Union 3")
     }
   }
   
@@ -114,10 +122,16 @@ class FunSetSuite extends FunSuite {
     new TestSets {
       val s = intersect(s1, s2)
       val t = intersect(s3, s3)
+      val v = intersect(s4, s5) // 0 < x < 3
+      val u = intersect(s4, s6) // null set
       assert(!contains(s, 1), "Null Intersect 1")
       assert(!contains(s, 2), "Null Intersect 2")
       assert(!contains(s, 3), "Null Intersect 3")
       assert(contains(t, 3),  "Singleton Intersect")
+      assert(contains(v, 2), "Range intersect 1")
+      assert(!contains(v, 4), "Range intersect 2")
+      assert(!contains(v, 3), "Range intersect 3")
+      assert(!contains(u, 1), "Null Range intersect")
     }
   }
 
@@ -125,11 +139,19 @@ class FunSetSuite extends FunSuite {
     new TestSets {
       val s = diff(s1, s2)
       val t = diff(s3, s3)
+      val v = diff(s4, s5) // x <= 0 || x >= 3)
+      val u = diff(s4, s6) // null set
       assert(contains(s, 1),  "True Diff 1")
       assert(!contains(s, 2), "False Diff 1")
       assert(!contains(s, 3), "False Diff 2")
       assert(!contains(t, 3), "Null Diff 1")
       assert(!contains(t, 1), "Null Diff 2")
+      assert(contains(v, 0), "Range Diff 1")
+      assert(!contains(v, 2), "Range Diff 2")
+      assert(contains(v, -1), "Range Diff 3")
+      assert(!contains(v, 5), "Range Diff 4")
+      assert(!contains(v, 1), "Range Diff 5")
+      assert(contains(u, -2), "Range Diff 6")
     }
   }
 
@@ -144,5 +166,34 @@ class FunSetSuite extends FunSuite {
       assert(!contains(t, 1), "Null Filter 1")
     }
   }
+
+  test("forall returns true vals -1000 to 1000 if passes predicate") {
+    new TestSets {
+      val t = forall(s3, (x => x < 2))  // false
+      val u = forall(s5, (x => x % 2 == 0)) // false
+      assert(t == false, "false forall 1")
+      assert(u == false, "false forall 2")
+    }
+  }  
   
+  test("exists returns true if predicate returns true for one element in the set") {
+    new TestSets {
+      val t = exists(s3, (x => x < 2))  // false
+      val u = exists(s5, (x => x % 2 == 0)) // true
+      assert(t == false, "false exists 1")
+      assert(u == true, "true exists 2")
+    }
+  }
+
+  test("map returns true vals f(-1000) to f(1000) if passes predicate") {
+    new TestSets {
+      val t = map(s4, x => x * x)
+      val u = map(s5, x => x - 1)
+      assert(contains(t, 4), "true map 1")
+      assert(contains(t, 25), "true map 2")
+      assert(contains(u, 0), "true map 3")
+      assert(!contains(u, -2), "false map 1")
+      assert(!contains(u, -1), "false map 2")
+    }
+  }  
 }

@@ -44,8 +44,8 @@ abstract class TweetSet {
    * in subclasses. If we implement it here, we can combine the functionality of 
    * both class' unique use of the filterAcc method.
    */
-    def filter(p: Tweet => Boolean): TweetSet = 
-      filterAcc(p, new Empty)
+  def filter(p: Tweet => Boolean): TweetSet = 
+    filterAcc(p, new Empty)
       
   
   /**
@@ -57,7 +57,9 @@ abstract class TweetSet {
    * Returns a new `TweetSet` that is the union of `TweetSet`s `this` and `that`.
    *
    * Question: Should we implment this method here, or should it remain abstract
-   * and be implemented in the subclasses?
+   * and be implemented in the subclasses? Implement in abstract class. They will
+   * Need to implement union differently (null should just return that, nonempty 
+   * should return the union of all this and that).
    */
   def union(that: TweetSet): TweetSet
   
@@ -69,8 +71,9 @@ abstract class TweetSet {
    *
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
+   * Hanlde in subclasses because behavior for each will be different
    */
-    def mostRetweeted: Tweet = ???
+  def mostRetweeted: Tweet
   
   /**
    * Returns a list containing all tweets of this set, sorted by retweet count
@@ -80,8 +83,15 @@ abstract class TweetSet {
    * Hint: the method `remove` on TweetSet will be very useful.
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
+   * Implement in super class because we need to handle both empty and non empty trees
    */
-    def descendingByRetweet: TweetList = ???
+  def descendingByRetweet: TweetList = 
+    // Avoid empty trees
+    if(this.isEmpty) Nil
+    else {
+      val maxRetweet = this.mostRetweeted
+      new Cons(maxRetweet, remove(maxRetweet).descendingByRetweet)
+    }
   
   /**
    * The following methods are already implemented
@@ -109,6 +119,11 @@ abstract class TweetSet {
    * This method takes a function and applies it to every element in the set.
    */
   def foreach(f: Tweet => Unit): Unit
+ 
+  /**
+   * Method to describe if a set is empty or not
+   */
+  def isEmpty: Boolean
 }
 
 class Empty extends TweetSet {
@@ -131,6 +146,10 @@ class Empty extends TweetSet {
   def foreach(f: Tweet => Unit): Unit = ()
 
   def union(that: TweetSet): TweetSet = that
+
+  def isEmpty: Boolean = true
+  
+  def mostRetweeted: Tweet = throw new Exception("Accessing empty tree")
 }
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
@@ -171,6 +190,25 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   def union(that: TweetSet): TweetSet = 
     left.union(right).union(that).incl(elem)
     
+  def isEmpty: Boolean = false
+    
+  /**
+   * Method to extract most retweeted tweet from the set
+   */    
+  def mostRetweeted: Tweet = {
+    // Define retweet comparator helper function
+    def retweetComp(t1: Tweet, t2: Tweet): Tweet = {
+      if (t1.retweets < t2.retweets) t2
+      else t1
+    }
+    // Base case, one element
+    if (left.isEmpty && right.isEmpty) elem
+    // Avoid empty sub trees
+    else if (left.isEmpty) retweetComp(right.mostRetweeted, elem)
+    else if (right.isEmpty) retweetComp(left.mostRetweeted, elem)
+    // both subtrees non-empty
+    else retweetComp(left.mostRetweeted, retweetComp(right.mostRetweeted, elem))
+  }
 }
 
 trait TweetList {
